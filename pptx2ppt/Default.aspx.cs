@@ -37,15 +37,15 @@ namespace pptx2ppt
                 // Download paths
                 string workDir = HttpContext.Current.Server.MapPath(".");
                 string inputDir = workDir + "\\input-files";
-                inputFile = Guid.NewGuid().ToString();
-                string inputPath = inputDir + "\\" + inputFile;
+                string fileGuid = Guid.NewGuid().ToString();
+                string inputPath = inputDir + "\\" + fileGuid + ".pptx";
                 bool inputDirExists = Directory.Exists(inputDir);
                 lblDebug.Text += "Download file: " + inputPath + "\n";
                 
                 if(inputDirExists){
                     // Download and save
                     lblDebug.Text += "Downloading and saving…" + "\n";
-                    Response.Flush();
+                    //Response.Flush();
                     bool isSaved = true;
                     try {
                         WebClient myWebClient = new WebClient();
@@ -59,18 +59,18 @@ namespace pptx2ppt
                     }
                     if (isSaved) { 
                         lblDebug.Text += "File saved." + "\n";
-                        //...
-                        string outputDir = workDir + "\\output-files";
-                        bool outputDirExists = Directory.Exists(outputDir);
-                        //...
 
+                        // Convert
+                        string outputFolder = "output-files";
+                        string outputDir = workDir + "\\" + outputFolder;
+                        bool outputDirExists = Directory.Exists(outputDir);
                         if (outputDirExists)
                         {
-                            string outputPath = outputDir + "\\" + inputFile;
+                            string outputPath = outputDir + "\\" + fileGuid + ".ppt";
                             lblDebug.Text += "Convert to: " + outputPath + "\n";
 
                             lblDebug.Text += "Converting…" + "\n";
-                            Response.Flush();
+                            //Response.Flush();
                             bool isConverted = true;
 
                             try
@@ -87,12 +87,15 @@ namespace pptx2ppt
                                 lblDebug.Text += "Error converting file. Technical details:" + "\n";
                                 lblDebug.Text += err.ToString() + "\n";
                             }
-                            if (isConverted)
+                            if (true || isConverted)
                             {
                                 lblDebug.Text += "File converted." + "\n";
                                 
                                 // Deliver file
-                                //...
+                                string redirectTo = HttpContext.Current.Request.Url.AbsolutePath.Replace("Default", "") + outputFolder + "/" + fileGuid + ".ppt";
+                                lblDebug.Text += "Deliver: " + redirectTo + "\n";
+                                Response.Clear();
+                                Response.Redirect(redirectTo);
                             }
                         }
                         else
@@ -121,7 +124,7 @@ namespace pptx2ppt
                     {
                         if (File.Exists(inputFile)) {
                             lblDebug.Text += "Converting…" + "\n";
-                            Response.Flush();
+                            //Response.Flush();
                             bool isConverted = true;
 
                             try {
@@ -140,7 +143,7 @@ namespace pptx2ppt
                             if (isConverted) { 
                                 lblDebug.Text += "File converted." + "\n";
                             }
-                            Response.Flush();
+                            //Response.Flush();
                         }
                         else
                         {
