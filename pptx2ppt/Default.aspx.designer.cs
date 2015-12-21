@@ -13,6 +13,15 @@ namespace pptx2ppt {
     public partial class _Default {
         
         /// <summary>
+        /// pnlInteractive control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlInteractive;
+        
+        /// <summary>
         /// lblDebug control.
         /// </summary>
         /// <remarks>
