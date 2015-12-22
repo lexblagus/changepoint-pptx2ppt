@@ -90,10 +90,10 @@ DocProject/Help/Html2
 DocProject/Help/html
 
 # Click-Once directory
-publish/
+# manually disabled: we NEED this folder into repo # publish/
 
 # Publish Web Output
-*.Publish.xml
+# manually disabled: we NEED this folder into repo # *.Publish.xml
 
 # NuGet Packages Directory
 ## TODO: If you have NuGet Package Restore enabled, uncomment the next line
@@ -114,9 +114,9 @@ ClientBin/
 ~$*
 *~
 *.dbmdl
-*.[Pp]ublish.xml
+# manually disabled: we NEED this folder into repo # *.[Pp]ublish.xml
 *.pfx
-*.publishsettings
+# manually disabled: we NEED this folder into repo # *.publishsettings
 
 # RIA/Silverlight projects
 Generated_Code/
@@ -154,3 +154,5 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
+# manually disabled: we NEED this folder into repo # /pptx2ppt/input-files
+# manually disabled: we NEED this folder into repo # /pptx2ppt/output-files

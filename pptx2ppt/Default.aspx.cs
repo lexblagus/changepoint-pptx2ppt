@@ -16,6 +16,7 @@ namespace pptx2ppt
     {
         protected void Page_Load(object sender, EventArgs e)
         {
+
             lblDebug.Text = "";
             lblDebug.Text += "Initialized at " + DateTime.Now.ToLongTimeString() + "…" + "\n";
 
@@ -87,7 +88,7 @@ namespace pptx2ppt
                                 lblDebug.Text += "Error converting file. Technical details:" + "\n";
                                 lblDebug.Text += err.ToString() + "\n";
                             }
-                            if (true || isConverted)
+                            if (isConverted)
                             {
                                 lblDebug.Text += "File converted." + "\n";
                                 
@@ -95,6 +96,7 @@ namespace pptx2ppt
                                 string redirectTo = HttpContext.Current.Request.Url.AbsolutePath.Replace("Default", "") + outputFolder + "/" + fileGuid + ".ppt";
                                 lblDebug.Text += "Deliver: " + redirectTo + "\n";
                                 Response.Clear();
+                                Response.AppendHeader("Content-Disposition", "attachment;filename=" + fileGuid + ".ppt");
                                 Response.Redirect(redirectTo);
                             }
                         }
