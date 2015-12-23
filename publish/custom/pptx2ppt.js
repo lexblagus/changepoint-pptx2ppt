@@ -11,11 +11,31 @@ self.pptx2ppt = {
 			//console.info('pptx2ppt.Intelledox.makeLink');
 			//console.log('idx',idx);
 			//console.log('el',el);
-			var href = '/pptx2ppt/Default?source=' + escape(el.href);
-			$(el).after(
+            /*
+		    var href = '/pptx2ppt/Default?source=' + escape(el.href);
+            */
+		    var arrVars = {};
+		    try {
+		        var arrPairs = el.href.split('?')[1].split('&');
+		        for (i in arrPairs) {
+		            if (arrPairs[i].search(/\=/) > -1) {
+		                arrPair = arrPairs[i].split("=");
+		                arrVars[arrPair[0]] = arrPair[1];
+		            }
+		        }
+		    } catch (err) {
+		        console.error('err',err);
+		    }
+		    console.log('arrVars', arrVars);
+		    console.log("arrVars['FileId']=", arrVars['FileId']);
+		    console.log("arrVars['JobId']=", arrVars['JobId']);
+
+		    var href = '/pptx2ppt/Default?' + escape( 'FileId=' + arrVars['FileId'] + '&JobId=' + arrVars['JobId']);
+
+            // Inject customization
+		    $(el).after(
 				' <a href="' + href + '">(ppt)</a>'
-			)
-			//...
+			);
 		}
 	}
 	// ————————————————————————————————————————————————————————————————————————————————
