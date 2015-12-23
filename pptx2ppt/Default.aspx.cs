@@ -4,13 +4,14 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
 using System.IO;
 using System.Net;
 using Aspose.Slides;
 using Aspose.Slides.Export;
-
 using System.Configuration;
+using System.Data.SqlClient;
+using System.Data;
+using System.IO.Compression;
 
 namespace pptx2ppt
 {
@@ -185,7 +186,172 @@ namespace pptx2ppt
         protected void beginIntelledox(string FileId, string JobId)
         {
             uiLog("debug", "beginIntelledox(\"" + FileId + "\", \"" + JobId + "\") ");
-            //...
+            try {
+                string strQuery = "select top 1 [DisplayName]+[Extension] as filename, [DocumentBinary] from [InfinitiDatabase].[dbo].[Document] where [DocumentId] = @FileId and [JobId] = @JobId";
+                uiLog("debug", "strQuery=" + strQuery);
+                SqlCommand cmd = new SqlCommand(strQuery);
+                cmd.Parameters.Add("@FileId", SqlDbType.VarChar).Value = FileId;
+                cmd.Parameters.Add("@JobId", SqlDbType.VarChar).Value = JobId;
+                DataTable dt = GetData(cmd);
+                if (dt != null)
+                {
+                    //download(dt);
+                    string compressedPath = saveToDisk(dt);
+                    if (compressedPath != "")
+                    {
+                        uiLog("debug", "Decompressing file");
+                        string extractedPath = decompress(compressedPath);
+                        uiLog("debug", "extractedPath=" + extractedPath);
+                        if (extractedPath != "")
+                        {
+                            string friendlyName = Path.GetFileName(extractedPath);
+                            string withoutExtension = Path.GetFileNameWithoutExtension(extractedPath);
+                            string workDir = HttpContext.Current.Server.MapPath(".");
+                            string outputDir = workDir + "\\" + confOutputFolder;
+                            string outputPath = outputDir + "\\" + withoutExtension + ".ppt";
+                            string redirToAddr = HttpContext.Current.Request.Url.AbsolutePath.Replace("Default", "") + confOutputFolder + "/" + withoutExtension + ".ppt";
+
+                            uiLog("debug", "friendlyName=" + friendlyName);
+                            uiLog("debug", "withoutExtension=" + withoutExtension);
+                            uiLog("debug", "workDir=" + workDir);
+                            uiLog("debug", "outputDir=" + outputDir);
+                            uiLog("debug", "outputPath=" + outputPath);
+                            uiLog("debug", "redirToAddr=" + redirToAddr);
+                            
+                            bool isConverted = convertPPTX2PPT(extractedPath, outputPath);
+                            if (isConverted)
+                            {
+                                // Deliver file
+                                uiLog("info", "Deliver: " + redirToAddr);
+                                if (!confSimulation)
+                                {
+                                    deliverFile(redirToAddr, friendlyName);
+                                }
+                                else
+                                {
+                                    uiLog("info", "Running in simulation mode. Does not deliver the file");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                uiLog("info", "Error converting file. Technical details:");
+                uiLog("info", err.ToString());
+            }
+        }
+
+        private DataTable GetData(SqlCommand cmd)
+        {
+            uiLog("debug", "GetData(\"" + cmd.CommandText + "\") ");
+            
+            DataTable dt = new DataTable();
+            String strConnString = System.Configuration.ConfigurationManager.ConnectionStrings["IntelledoxConnection"].ConnectionString;
+            uiLog("debug", "strConnString=" + strConnString);
+            SqlConnection con = new SqlConnection(strConnString);
+            SqlDataAdapter sda = new SqlDataAdapter();
+            cmd.CommandType = CommandType.Text;
+            cmd.Connection = con;
+            try
+            {
+                con.Open();
+                sda.SelectCommand = cmd;
+                sda.Fill(dt);
+                return dt;
+            }
+            catch (Exception err)
+            {
+                uiLog("info", "Error getting file from database. Technical details:");
+                uiLog("info", err.ToString());
+                return null;
+            }
+            finally
+            {
+                con.Close();
+                sda.Dispose();
+                con.Dispose();
+            }
+        }
+
+        private string saveToDisk(DataTable dt)
+        {
+            uiLog("debug", "saveToDisk() ");
+
+            // Download paths
+            string workDir = HttpContext.Current.Server.MapPath(".");
+            string inputDir = workDir + "\\" + confInputFolder;
+            bool inputDirExists = Directory.Exists(inputDir);
+            string inputPath = inputDir + "\\" + dt.Rows[0]["filename"].ToString() + ".gz";
+            
+            uiLog("info", "Download file: " + inputPath);
+            uiLog("debug", "workDir=" + workDir);
+            uiLog("debug", "inputDir=" + inputDir);
+            uiLog("debug", "inputDirExists=" + inputDirExists);
+            uiLog("debug", "inputPath=" + inputPath);
+
+            if (inputDirExists)
+            {
+                Byte[] fileBytes = (Byte[])dt.Rows[0]["DocumentBinary"];
+                File.WriteAllBytes(inputPath, fileBytes);
+                uiLog("info", "File from DB has been saved into the filesystem");
+                return inputPath;
+            }
+            else
+            {
+                uiLog("info", "Error: input folder does not exist.");
+                return "";
+            }
+            /*
+            Response.Buffer = true;
+            Response.Charset = "";
+            Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            //Response.ContentType = dt.Rows[0]["ContentType"].ToString();
+            Response.AddHeader("content-disposition", "attachment;filename=" + dt.Rows[0]["filename"].ToString());
+            Response.BinaryWrite(bytes);
+            Response.Flush();
+            Response.End();
+            */
+        }
+
+        private string decompress(string inputFile)
+        {
+            uiLog("debug", "decompress(\"" + inputFile + "\")");
+
+            FileInfo fileToDecompress = new FileInfo(inputFile);
+
+            using (FileStream originalFileStream = fileToDecompress.OpenRead())
+            {
+                string currentFileName = fileToDecompress.FullName;
+                string newFileName = currentFileName.Remove(currentFileName.Length - fileToDecompress.Extension.Length);
+
+                using (FileStream decompressedFileStream = File.Create(newFileName))
+                {
+                    using (GZipStream decompressionStream = new GZipStream(originalFileStream, CompressionMode.Decompress))
+                    {
+                        decompressionStream.CopyTo(decompressedFileStream);
+                        uiLog("info", "Decompressed: " + newFileName);
+                        return newFileName;
+                    }
+                }
+            }
+            return "";
+        }
+
+        private void download(DataTable dt)
+        {
+            uiLog("debug", "download(bytes) ");
+
+            Byte[] bytes = (Byte[])dt.Rows[0]["DocumentBinary"];
+            Response.Buffer = true;
+            Response.Charset = "";
+            Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            //Response.ContentType = dt.Rows[0]["ContentType"].ToString();
+            Response.AddHeader("content-disposition", "attachment;filename=" + dt.Rows[0]["filename"].ToString());
+            Response.BinaryWrite(bytes);
+            Response.Flush();
+            Response.End();
         }
 
         protected bool convertPPTX2PPT(string inputFile, string outputFile)

@@ -30,7 +30,7 @@ self.pptx2ppt = {
 		    console.log("arrVars['FileId']=", arrVars['FileId']);
 		    console.log("arrVars['JobId']=", arrVars['JobId']);
 
-		    var href = '/pptx2ppt/Default?' + escape( 'FileId=' + arrVars['FileId'] + '&JobId=' + arrVars['JobId']);
+		    var href = '/pptx2ppt/Default?' + ( 'FileId=' + arrVars['FileId'] + '&JobId=' + arrVars['JobId']);
 
             // Inject customization
 		    $(el).after(
