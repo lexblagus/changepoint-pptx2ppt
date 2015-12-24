@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en-US">
+<head>
+	<meta charset="utf-8">
+	<title>PPTX2PPT</title>
+	<link rel="stylesheet" type="text/css" href="lib/reset.css" media="all">
+	<link rel="stylesheet" type="text/css" href="lib/layout.css" media="all">
+	<script> 
+// For discussion and comments, see: http://remysharp.com/2009/01/07/html5-enabling-script/
+(function(){if(!/*@cc_on!@*/0)return;var e = "abbr,article,aside,audio,canvas,datalist,details,eventsource,figure,footer,header,hgroup,mark,menu,meter,nav,output,progress,section,time,video".split(','),i=e.length;while(i--){document.createElement(e[i])}})()
+	</script>
+</head>
+<body class="_debug">
+	<header>
+		<h1>PPTX2PPT</h1>
+		<nav>
+			<ol>
+				<li><a href="#chapIntrod">Introdução</a></li>
+				<li><a href="#chapSource">Código fonte</a></li>
+				<li><a href="#chapCompil">Compilação</a></li>
+				<li><a href="#chapInstal">Instalação e configuração</a></li>
+				<li><a href="#chapDebugs">Análise de problemas</a></li>
+				<li><a href="#chapSobres">Sobre</a></li>
+			</ol>
+		</nav>
+	</header>
+	<main style="margin-top:1em;">
+		<h2><a name="chapIntrod"></a>Introdução</h2>
+		<p>Seguem detalhes da ferramenta que adiciona a funcionalidade de extensão PPT para o Intelledox/ChangePoint. </p>
+		<p>As instruções abaixo foram redigidas com base na máquina virtual do ChangePoint 2012 do projeto Sebrae.</p>
+		
+		<h2><a name="chapSource"></a>Código fonte</h2>
+
+		<p>
+			O código-fonte e extras deste projeto está em <a href="https://github.com/lexblagus/pptx2ppt">https://github.com/lexblagus/pptx2ppt</a> (<a href="https://github.com/lexblagus/pptx2ppt/archive/master.zip">link direto para o repositório zipado</a>).
+			Ele foi compilado em Visual Studio 2013 para .Net 4.5 em Windows Server 2016.
+			Estrutura de pastas:
+		</p>
+		<dl style="padding-left:1em;">
+			<dt><code><pre>/documentation</pre></code></dt>
+			<dd>esta documentação em HTML</dd>
+			<dt><code><pre>/extras</pre></code></dt>
+			<dd>contém o componente Aspose Slides e um arquivo pptx de exemplo</dd>
+			<dt><code><pre>/packages</pre></code></dt>
+			<dd>dependências do código-fonte original</dd>
+			<dt><code><pre>/pptx2ppt</pre></code></dt>
+			<dd>código fonte completo</dd>
+			<dt><code><pre>/publish</pre></code></dt>
+			<dd>pasta a ser copiada para o servidor IIS em <code>C:\Changepoint\Enterprise\</code> e renomeada para <code>pptx2ppt</code></dd>
+		</dl>
+		<p>O componente de conversão de PowerPoint é o Aspose Slides (<code>http://www.aspose.com/.net/powerpoint-component.aspx</code>) e está em modo demonstração: ele adiciona uma marca d' água a fundo dos slides do arquivo PowerPoint convertido. É necessária a compra deste componente e recompilação do projeto para remover a marca de trial.</p>
+		<p>
+			A customização do link de PPT dentro do Intelledox foi feito através de injeção de javascript (<code>/pptx2ppt/custom/pptx2ppt.js</code>) e requer o jQuery já devidamente anexado na respectiva página a ser customizada (<code>/Intelledox/Infiniti/Produce/Finish.aspx</code>).
+		</p>
+
+		<h2><a name="chapCompil"></a>Compilação</h2>
+
+		<p>
+			No Visual Studio, abra o arquivo de solução <code>/pptx2ppt.sln</code> que está na raiz dos códigos-fonte do <a href="https://github.com/lexblagus/pptx2ppt">repositório</a><br>
+			<img src="img/20.png" width="100%" style="margin:1em 0;">
+		</p>
+
+		<p>
+			Os arquivos mais importantes do projeto são:<br>
+			<dl style="padding-left:1em;">
+				<dt><code><pre>/pptx2ppt/Default.aspx.cs</pre></code></dt>
+				<dd>Lógica do conversor</dd>
+				<dt><code><pre>/pptx2ppt/Default.aspx</pre></code></dt>
+				<dd>Front-end</dd>
+				<dt><code><pre>/pptx2ppt/Web.config</pre></code></dt>
+				<dd>Configurações adicionais que não requerem recompilação (como diretórios e nível de debug)</dd>
+				<dt><code><pre>/pptx2ppt/custom/pptx2ppt.js</pre></code></dt>
+				<dd>Biblioteca a ser injetada no Intelledox (<code>C:\Changepoint\Intelledox\Infiniti\Produce\Finish.aspx</code>)</dd>
+			</dl>
+			<img src="img/21.png" width="100%" style="margin:1em 0;">
+		</p>
+
+		<p>
+			Para atualizar a biblioteca <code>Aspose.Slides.dll</code>, basta atualizar o arquivo <code>extras/Aspose.Slides.dll</code> e recompilar o projeto. Caso isso não funcione, referencie novamente a biblioteca, seguindo os passos abaixo:
+			<img src="img/23.png" width="100%" style="margin:1em 0;">
+			<img src="img/25.png" width="100%" style="margin:1em 0;">
+			<img src="img/26.png" width="100%" style="margin:1em 0;">
+		</p>
+		<p>
+			Para garantir uma correta publicação do aplicativo, apague todos os arquivos da pasta <code>/publish</code>.
+			Considerando que a compilação do projeto ocorre com sucesso, execute um Publish:
+			<img src="img/27.png" width="100%" style="margin:1em 0;">
+			<img src="img/28.png" width="100%" style="margin:1em 0;">
+		</p>
+		<p>A pasta <code>/publish</code> está pronta para ser publicada no servidor conforme as instruções do próximo capítulo.</p>
+
+		<p>Em se tratando de como testar, o conversor tem três modos de operação:</p>
+		<dl style="padding-left:1em;">
+			<dt>Interativo</dt>
+			<dd>Usa um formulário de tela para indicar o arquivo de origem e o arquivo de destino dentro do servidor.</dd>
+			<dt>Querystring de origem http</dt>
+			<dd>Utiliza uma variável como entrada para conversão, exemplo: <code>http://cpdemo:8080/Default?source=http://cpdemo:8080/input-files/sample.pptx</code></dd>
+			<dt>Querystring de Intelledox</dt>
+			<dd>Captura um documento dentro do banco de dados para o sistema de arquivos do servidor, descompacta, converte e entrega. <b>Este é o modo que será utilizado na integração Intelledox/ChangePoint.</b> Exemplo: <code>http://cpdemo:8080/pptx2ppt/Default?FileId=50fb0ca9-da9a-4020-a922-eaef1fcd8fa9&JobId=ca12fd51-1ff7-4860-be8a-21b339d14b04</code></dd>
+		</dl>
+
+		<h2><a name="chapInstal"></a>Instalação e configuração</h2>
+		<h6>Passo 1: Configuração do IIS</h6>
+		<p>1.1. Copie a pasta <code>/publish</code> para <code>C:\Changepoint\Enterprise\</code> e renomeie-a para <code>pptx2ppt</code></p>
+		<p><img src="img/01.png" width="100%" style="margin:1em 0;"></p>
+		<p>1.2. No IIS Manager, converta a pasta recém-criada (pptx2ppt) para aplicação</p>
+		<p><img src="img/02.png" width="100%" style="margin:1em 0;"></p>
+		<p><img src="img/03.png" width="100%" style="margin:1em 0;"></p>
+		
+		<h6>Passo opcional 2: testar se o PPTX2PPT está funcionando</h6>
+		<p>2.1. Abra o endereço <code>http://cpdemo:8080/pptx2ppt/Default</code></p>
+		<p style="padding-left:1em;">Nesta tela é possível converter arquivos manualmente, usando as pastas de conversão criadas dentro do servidor (<code>C:\Changepoint\Enterprise\pptx2ppt\input-files\sample.pptx</code> e <code>C:\Changepoint\Enterprise\pptx2ppt\output-files\sample.ppt</code>). Use duas barras invertidas (<code>\\</code>) como separador de path.</p>
+		<p><img src="img/04.png" width="100%" style="margin:1em 0;"></p>
+		<p>2.2. Há um arquivo exemplo em <code>http://cpdemo:8080/pptx2ppt/input-files/sample.pptx</code>. Para fazer a conversão via querystring, chame no browser o endereço <code>http://cpdemo:8080/pptx2ppt/Default?source=http://cpdemo:8080/pptx2ppt/input-files/sample.pptx</code>. O conversor deve entregar o arquivo de exemplo devidamente convertido.</p>
+		<p><img src="img/04.01.png" width="100%" style="margin:1em 0;"></p>
+		<p></p>
+
+		<h6>Passo 3: Customização do Intelledox</h6>
+		<p>3.1. Abrir o arquivo <code>C:\Changepoint\Intelledox\Infiniti\Produce\Finish.aspx</code> no Notepad</p>
+		<p><img src="img/05.png" width="100%" style="margin:1em 0;"></p>
+		<p>3.2. Adicionar o código abaixo na linha 11</p>
+		<p><code>&lt;script type="text/javascript" src="/pptx2ppt/custom/pptx2ppt.js"&gt;&lt;/script&gt;</code></p>
+		<p>(nota: a imagem abaixo está com o nome do arquivo errado; o correto é pptx2ppt.js)</p>
+		<p><img src="img/06.png" width="100%" style="margin:1em 0;"></p>
+		<p>3.3. Para validar se a customização funciona, faça login no Changepoint (<code>http://cpdemo:8080/</code>) e entre no item de menú CPX / Exemplo PowerPoint</p>
+		<p><img src="img/07.png" width="100%" style="margin:1em 0;"></p>
+		<p>3.4. Siga com o tutorial clicando nas setas para direita até aparecer o botão de submit; clique nele.</p>
+		<p><img src="img/08.png" width="100%" style="margin:1em 0;"></p>
+		<p>3.5. Logo 'a direita do link "PowerPoint Example (pptx)", deve aparecer o link "(ppt)". Este link aponta para o conversor de arquivo.</p>
+		<p><img src="img/09.png" width="100%" style="margin:1em 0;"></p>
+		<p>Caso haja alguma mensagem de erro, ela será exibida no log da aplicação. A configuração deste log vem logo abaixo</p>
+		<p><img src="img/10.png" width="100%" style="margin:1em 0;"></p>
+		
+		<h2><a name="chapDebugs"></a>Análise de problemas</h2>
+		<p>O arquivo <code>pptx2ppt/web.config</code> contém algumas configurações úteis no processo de debug:</p>
+		<dl style="padding-left:1em;">
+			<dt><code><pre>appSettings/ppt2ppt_logLevel</pre></code></dt>
+			<dd>Define o detalhamento das mensagens que paracem para o usuário. O padrão é "info". O recomendável para debug de problemas é "debug". </dd>
+			<dt><code><pre>appSettings/ppt2ppt_Simulation</pre></code></dt>
+			<dd>Faz com que o arquivo de destino não seja entregue (ou seja, não ocorra o http redirect) para que o log de tela possa ser visto.</dd>
+			<dt><code><pre>appSettings/ppt2ppt_inputFolder</pre></code></dt>
+			<dd>Nome da pasta que receberá os arquivos PPTX e GZ para conversão ou descompressão; esta pasta não tem garbage collection!</dd>
+			<dt><code><pre>appSettings/ppt2ppt_outputFolder</pre></code></dt>
+			<dd>Nome da pasta que terá os arquivos PPT a serem entregues para o usuário. Esta pasta também não tem garbage collection!</dd>
+			<dt><code><pre>connectionStrings/IntelledoxConnection</pre></code></dt>
+			<dd>Dados de conexão com o servidor de banco de dados, para conversão de documentos Intelledox.</dd>
+		</dl>
+		
+		<h2><a name="chapSobres"></a>Sobre</h2>
+		<p>Lex Blagus, <code>http://blag.us/</code> para Ornitorrinko <code>http://www.ornitorrinko.com/</code></p>
+		
+	</main>
+</body>
+</html>
